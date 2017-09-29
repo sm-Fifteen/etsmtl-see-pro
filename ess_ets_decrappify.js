@@ -13,6 +13,9 @@ function extendAllRecords(recordList) {
 			return extendRecord(record, fakeDoc).then(function(extendedRecord) {
 				extendedRecords.push(extendedRecord);
 				return extendedRecords;
+			}).catch(function(e) {
+				console.warn(e);
+				return extendedRecords;
 			});
 		})
 	}, Promise.resolve([]));
