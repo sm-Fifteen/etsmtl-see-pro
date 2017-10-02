@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         ETS Recherche de stages PRO
-// @namespace    https://gist.github.com/sm-Fifteen/762e564694db40a8477ae9e32496f51b
+// @namespace    https://github.com/sm-Fifteen/etsmtl-see-pro
 // @version      0.1
 // @description  Pour rendre la recherche de stage moins pénible sur le site du SEE.
 // @author       Nicolas Roy-Renaud <nicolas.roy-renaud.1@ens.etsmtl.ca>
