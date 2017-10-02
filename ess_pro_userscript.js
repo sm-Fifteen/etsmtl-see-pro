@@ -24,8 +24,9 @@
 		GM_addStyle(gridcss);
 		GM_addStyle(gridcss2);
 
-		GM_addStyle(".cellIcon > img { width: 20px }");
+		GM_addStyle(".cellIcon img { width: 20px }");
 		GM_addStyle(".jsgrid-cell { white-space: pre-wrap; overflow-x: hidden; }");
+		GM_addStyle("a {color: inherit;}");
 	}
 
 	function replaceGrid(jsgridData) {
@@ -46,6 +47,26 @@
 			autoload: true,
 		};
 
+		// While I could have used the rowClick callback, I've never been fond of using JS to handle links
+		jsGridParams.rowRenderer = function(item, itemIndex) {
+			var rowObj = $("<tr>");
+			var cellClass = this.cellClass;
+			this.fields.forEach(function(rowField){
+				if (rowField.visible) {
+					var content = $("<a>").append(rowField.itemTemplate(item[rowField.name]));
+					content.attr("href", item.pageURL);
+					var cell = $("<td>").append(content);
+					cell.css("width", rowField.width);
+					cell.addClass(cellClass);
+					cell.addClass(rowField.css);
+					cell.addClass(rowField.align ? ("jsgrid-align-" + rowField.align) : "");
+					rowObj.append(cell);
+				}
+			});
+
+			return rowObj;
+		};
+
 		jsGridParams.controller = {
 			loadData: function(filter) {
 				return $.grep(jsGridParams.data, function(record) {
@@ -56,7 +77,7 @@
 						(filter.IsFavori === undefined || record.IsFavori === filter.IsFavori) &&
 						(filter.IsPostulee === undefined || record.IsPostulee === filter.IsPostulee);
 				});
-			}
+			},
 		};
 
 		var parsedData = parseOGGridData(ogDataSourceSettings.dataSource.Records);
@@ -142,6 +163,7 @@
 		var returnDict = {};
 
 		gridData.forEach(function(record){
+			record.pageURL = "/Poste/" + record.GuidString;
 			//record.FinAffichage = new Date(1507150800000);
 			record.IsFavori = (record.IsFavori !== "transparent");
 			record.IsPostulee = (record.IsPostulee !== "transparent");
