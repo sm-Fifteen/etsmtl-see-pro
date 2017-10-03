@@ -11,6 +11,8 @@
 
 // @grant        GM_getResourceText
 // @grant        GM_addStyle
+// @grant        GM_setValue
+// @grant        GM_getValue
 // ==/UserScript==
 
 (function() {
@@ -34,6 +36,23 @@
 		$("#ConteneurListes").append( "<div id='grid1'></div>" );
 
 		$("#grid1").jsGrid(jsgridData);
+	}
+
+	function declareCustomFields() {
+		var PosteField = function(config) {
+			jsGrid.Field.call(this, config);
+		};
+
+		PosteField.prototype = new jsGrid.Field({
+			itemTemplate: function(value) {
+				return value.title;
+			},
+			sorter: function(val1, val2) {
+				return new val1.title.localeCompare(val2.title);
+			},
+		});
+
+		jsGrid.fields.posteField = PosteField;
 	}
 
 	function gridDataToJSGrid(ogDataSourceSettings) {
@@ -147,6 +166,11 @@
 					field.selectedIndex = -1;
 					field.items = parsedData.employeurs;
 					break;
+
+				case "Titpost":
+					field.name = "poste";
+					field.type = "posteField";
+					break;
 			}
 		});
 
@@ -185,6 +209,15 @@
 
 			record.Lieupost = idxLieu;
 			record.Nmemp = idxEntr;
+
+			// Stored on a per-extension basis
+			var storedPoste = GM_getValue(record.GuidString, undefined);
+
+			if(storedPoste) {
+				record.poste = JSON.parse(storedPoste);
+			} else {
+				record.poste = {"title": record.Titpost};
+			}
 		});
 
 		returnDict.data = gridData;
@@ -194,6 +227,7 @@
 	}
 
 	loadCSS();
+	declareCustomFields();
 	var jsGridParams = gridDataToJSGrid($("#grid1").data("igGrid").dataSource.settings);
 	replaceGrid(jsGridParams);
 })();
