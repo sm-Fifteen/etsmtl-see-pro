@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         ETS Recherche de stages PRO
-// @namespace    https://github.com/sm-Fifteen/etsmtl-see-pro
+// @namespace    https://gist.github.com/sm-Fifteen/762e564694db40a8477ae9e32496f51b
 // @version      0.1
 // @description  Pour rendre la recherche de stage moins pénible sur le site du SEE.
 // @author       Nicolas Roy-Renaud <nicolas.roy-renaud.1@ens.etsmtl.ca>
@@ -19,7 +19,6 @@
 	function loadCSS() {
 		var gridcss = GM_getResourceText("jsgrid_css");
 		var gridcss2 = GM_getResourceText("jsgrid_theme_css");
-		console.log(gridcss);
 
 		GM_addStyle(gridcss);
 		GM_addStyle(gridcss2);
@@ -81,7 +80,6 @@
 		};
 
 		var parsedData = parseOGGridData(ogDataSourceSettings.dataSource.Records);
-		console.log(parsedData.data);
 		jsGridParams.data = parsedData.data;
 
 		var fields = ogDataSourceSettings.schema.fields;
