@@ -36,6 +36,7 @@
 		$("#ConteneurListes").append( "<div id='grid1'></div>" );
 
 		$("#grid1").jsGrid(jsgridData);
+		return $("#grid1").data("JSGrid");
 	}
 
 	function declareCustomFields() {
@@ -53,6 +54,78 @@
 		});
 
 		jsGrid.fields.posteField = PosteField;
+	}
+
+	function loadFullDataForAllPostes(jsGridData) {
+		Promise.all(jsGridData.data.map(function(record) {
+			return getFullPosteData(record).then(function(poste) {
+				return { "record" : record, "poste": poste };
+			});
+		})).then(function(resolvedList) {
+			resolvedList.forEach(function(resolvedRecord) {
+				// Only deep field is poste, which we'll be replacing
+				var updatedRecord = Object.assign({}, resolvedRecord.record);
+				updatedRecord.poste = resolvedRecord.poste;
+
+				jsGridData.updateItem(resolvedRecord.record, updatedRecord);
+			});
+		});
+	}
+
+	function getFullPosteData(record) {
+		// Stored on a per-userscript basis, so collisions won't happen
+		// Using nopost because GUIDs don't count as valid identifiers
+		var storedPoste = GM_getValue(record.Nopost);
+
+		if (storedPoste) {
+			return Promise.resolve(storedPoste);
+		} else {
+			return fetchFullPosteData(record.pageURL).then(function(value){
+				console.warn("Tried fetching " + record.pageURL);
+				//GM_setValue(record.Nopost, value);
+				return value;
+			});
+		}
+	}
+
+	function fetchFullPosteData(pageURL, fakeDom) {
+		// Defensive copy, we're not altering the original, it's only getting swapped right before refreshing
+		var poste = {};
+
+		var jqPromise = $.get(pageURL).then(function(pageHtml) {
+			pageHtml = $.trim(pageHtml);
+			var jqObj = $(pageHtml, fakeDom);
+
+			poste.desc = jqObj.find(".divBoiteBleu").text().trim();
+			Object.assign(poste, detailsToKeys(jqObj));
+
+			// Only body really needs to be cleared between parses.
+			if (fakeDom) $(fakeDom).find("body").empty();
+
+			return poste;
+		});
+
+		return new Promise(function(resolve, reject) { jqPromise.then(resolve, reject); });
+	}
+
+	function detailsToKeys(jqDocument) {
+		var individualKeys = $.map(jqDocument.find(".ligneInfo"), function(domLine) {
+			var lineDivs = jqDocument.find(domLine).children("div");
+			if (lineDivs.length === 2) {
+				var key = $(lineDivs[0]).text().trim().replace(':', '').toLowerCase().replace(/[^\w]/g, '_');
+				var val = $(lineDivs[1]).html().trim();
+
+				var result = {};
+				result[key] = val;
+
+				return result;
+			}
+		});
+
+		return individualKeys.reduce(function(accumulator, nextItem) {
+			// Somehow, `arrayODicts.reduce(Object.assign, {})` doesn't work
+			return Object.assign(accumulator, nextItem);
+		}, {});
 	}
 
 	function gridDataToJSGrid(ogDataSourceSettings) {
@@ -209,15 +282,10 @@
 
 			record.Lieupost = idxLieu;
 			record.Nmemp = idxEntr;
-
-			// Stored on a per-extension basis
-			var storedPoste = GM_getValue(record.GuidString, undefined);
-
-			if(storedPoste) {
-				record.poste = JSON.parse(storedPoste);
-			} else {
-				record.poste = {"title": record.Titpost};
-			}
+			record.poste = {
+				"title": record.Titpost,
+				"fetched": false,
+			};
 		});
 
 		returnDict.data = gridData;
@@ -229,5 +297,6 @@
 	loadCSS();
 	declareCustomFields();
 	var jsGridParams = gridDataToJSGrid($("#grid1").data("igGrid").dataSource.settings);
-	replaceGrid(jsGridParams);
+	var jsGridData = replaceGrid(jsGridParams);
+	loadFullDataForAllPostes(jsGridData);
 })();
