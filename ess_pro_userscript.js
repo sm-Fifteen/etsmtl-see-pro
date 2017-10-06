@@ -28,6 +28,8 @@
 		GM_addStyle(".cellIcon img { width: 20px }");
 		GM_addStyle(".jsgrid-cell { white-space: pre-wrap; overflow-x: hidden; }");
 		GM_addStyle("a {color: inherit;}");
+		GM_addStyle(".jsgrid-row.fetch-data-ok > .jsgrid-cell {background-color: #E0F2F7;} .jsgrid-alt-row.fetch-data-ok > .jsgrid-cell {background-color: #CEECF5;}");
+		GM_addStyle(".jsgrid-row.fetch-data-fail > .jsgrid-cell {background-color: #F6CECE;} .jsgrid-alt-row.fetch-data-fail > .jsgrid-cell {background-color: #F5A9A9;}");
 	}
 
 	function replaceGrid(jsgridData) {
@@ -82,8 +84,14 @@
 		} else {
 			return fetchFullPosteData(record.pageURL).then(function(value){
 				console.warn("Tried fetching " + record.pageURL);
-				//GM_setValue(record.Nopost, value);
+				GM_setValue(record.Nopost, value);
 				return value;
+			}).catch(function(e) {
+				console.error("Failed to fetch " + record.pageURL);
+				var value = Object.assign({}, record.poste);
+				// Not saved
+				value.fail = true;
+				return returnedObj;
 			});
 		}
 	}
@@ -151,9 +159,17 @@
 					cell.addClass(cellClass);
 					cell.addClass(rowField.css);
 					cell.addClass(rowField.align ? ("jsgrid-align-" + rowField.align) : "");
+
 					rowObj.append(cell);
 				}
 			});
+
+			if (item.poste.desc) {
+				rowObj.attr("title", item.poste.desc);
+				rowObj.addClass("fetch-data-ok");
+			} else if (item.poste.fail) {
+				rowObj.addClass("fetch-data-fail");
+			}
 
 			return rowObj;
 		};
@@ -284,7 +300,6 @@
 			record.Nmemp = idxEntr;
 			record.poste = {
 				"title": record.Titpost,
-				"fetched": false,
 			};
 		});
 
