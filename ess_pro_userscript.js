@@ -104,7 +104,8 @@
 			pageHtml = $.trim(pageHtml);
 			var jqObj = $(pageHtml, fakeDom);
 
-			poste.desc = jqObj.find(".divBoiteBleu").text().trim();
+			poste.desc = $(jqObj.find(".divBoiteBleu").get(0)).html().trim();
+			poste.entrDesc = $(jqObj.find(".divBoiteBleu").get(1)).html().trim();
 			Object.assign(poste, detailsToKeys(jqObj));
 
 			// Only body really needs to be cleared between parses.
