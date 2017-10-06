@@ -165,7 +165,8 @@
 			});
 
 			if (item.poste.desc) {
-				rowObj.attr("title", item.poste.desc);
+				//rowObj.attr("title", item.poste.desc);
+				rowObj.attr("data-row-idx", itemIndex);
 				rowObj.addClass("fetch-data-ok");
 			} else if (item.poste.fail) {
 				rowObj.addClass("fetch-data-fail");
@@ -273,7 +274,7 @@
 		var listEnrt = [""];
 		var returnDict = {};
 
-		gridData.forEach(function(record){
+		gridData.forEach(function(record, recordIdx){
 			record.pageURL = "/Poste/" + record.GuidString;
 			//record.FinAffichage = new Date(1507150800000);
 			record.IsFavori = (record.IsFavori !== "transparent");
@@ -314,4 +315,11 @@
 	var jsGridParams = gridDataToJSGrid($("#grid1").data("igGrid").dataSource.settings);
 	var jsGridData = replaceGrid(jsGridParams);
 	loadFullDataForAllPostes(jsGridData);
+
+	$(document).tooltip({
+		items: "tr[data-row-idx]",
+		content: function () {
+			return $(this).data("JSGridItem").poste.desc;
+		}
+	});
 })();
