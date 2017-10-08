@@ -46,13 +46,14 @@
 			jsGrid.Field.call(this, config);
 		};
 
-		PosteField.prototype = new jsGrid.Field({
+		PosteField.prototype = new jsGrid.fields.text({
 			itemTemplate: function(value) {
 				return value.title;
 			},
 			sorter: function(val1, val2) {
 				return new val1.title.localeCompare(val2.title);
 			},
+			filtering: true,
 		});
 
 		jsGrid.fields.posteField = PosteField;
@@ -182,6 +183,7 @@
 					return (!filter.Nopost || record.Nopost.toUpperCase().indexOf(filter.Nopost.toUpperCase()) > -1) &&
 						(!filter.Lieupost || record.Lieupost === filter.Lieupost) &&
 						(!filter.Nmemp || record.Nmemp === filter.Nmemp) &&
+						(!filter.poste || record.poste.desc.indexOf(filter.poste) !== -1) &&
 						(filter.IsNouveau === undefined || record.IsNouveau === filter.IsNouveau) &&
 						(filter.IsFavori === undefined || record.IsFavori === filter.IsFavori) &&
 						(filter.IsPostulee === undefined || record.IsPostulee === filter.IsPostulee);
